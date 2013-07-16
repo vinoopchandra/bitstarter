@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 /*
 Automatically grade files for the presence of specified HTML tags/attributes.
@@ -28,6 +27,7 @@ var cheerio = require('cheerio');
 var rest=require('restler');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
+var URL_DEFAULT="index1.html";
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -63,15 +63,37 @@ var clone = function(fn) {
     return fn.bind({});
 };
 
+//var response2console=function(result,response){
+  //  if(result instanceof Error){
+//	console.error('Error: '+util.format(response.message));
+  //  } else{
+//	console.log('trying to open file');
+//	fs.open('./'+URL_DEFAULT,'w');
+///	console.log('opened file for writing');
+//	fs.writeFile('./'+URL_DEFAULT,result);
+//	console.log('finished writing');
+  //  }
+//}	
+
+
 if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
         .option('-u, --url <url_line>', 'url string')  
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    var inputurl=checkHtmlFile(rest.get(program.url),program.checks);
+    if(program.file){
+	var checkJson = checkHtmlFile(program.file, program.checks);
+    }
+    //var outJson = JSON.stringify(checkJson, null, 4);
+    if(program.url){
+	//rest.get(program.url).on('complete',response2console);
+	////rest.get(program.url).on('complete',function(result){
+	    ////fs.writeFile('./'+URL_DEFAULT,result,function(response,result){})});
+	////var checkJson=checkHtmlFile(assertFileExists('./'+URL_DEFAULT),program.checks);
+	rest.get(program.url).on('complete',function(result){var checkJson=checkHtmlFile(result,program.checks)});
+    }
+    var outJson=JSON.stringify(checkJson,null,4);
     console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
